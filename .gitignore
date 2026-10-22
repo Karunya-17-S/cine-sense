@@ -1,0 +1,31 @@
+# ─── OS & Editor ───────────────────────────────────────────────
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains IDEs
+.idea/
+
+# ─── Secrets & Environment ─────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Logs ──────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ─── Node (if you ever add a build step) ───────────────────────
+node_modules/
+dist/
