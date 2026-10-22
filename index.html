@@ -108,7 +108,7 @@ svg{display:block}
 .hero-title{font-family:var(--display);font-weight:400;color:var(--fg-hi);font-size:clamp(44px,7.4vw,120px);line-height:.88;margin:0;letter-spacing:.01em;text-wrap:balance;text-shadow:0 4px 30px rgba(0,0,0,.5)}
 .top-badge{display:flex;align-items:center;gap:10px;font-weight:700;font-size:clamp(14px,1.5vw,20px);color:var(--fg-hi)}
 .t10{width:28px;height:28px;background:var(--red);border-radius:3px;display:grid;place-items:center;font-family:var(--display);font-size:11px;line-height:.9;text-align:center;padding-top:2px}
-.hero-desc{margin:0;font-size:clamp(14px,1.3vw,19px);color:var(--fg-hi);text-shadow:0 2px 8px rgba(0,0,0,.6);text-wrap:pretty}
+.hero-desc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin:0;font-size:clamp(14px,1.3vw,19px);color:var(--fg-hi);text-shadow:0 2px 8px rgba(0,0,0,.6);text-wrap:pretty}
 .btns{display:flex;gap:10px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:10px;border-radius:4px;padding:10px 26px 10px 20px;font-weight:700;font-size:clamp(14px,1.25vw,18px);transition:opacity .2s,background .2s}
 .btn .ico{width:26px;height:26px}
@@ -320,6 +320,10 @@ button.chip:hover{background:rgba(255,255,255,.14);border-color:#fff}
 .ai-form input:focus{border-color:var(--fg-dim)}
 .ai-form button{width:44px;height:44px;border-radius:50%;background:var(--red);display:grid;place-items:center;flex:none;color:#fff}
 
+.sim-card .bd p{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.soon-body p{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+#gate .spinner{margin:8px auto}
+.star{color:var(--gold)}
 /* ---------- Footer ---------- */
 footer{max-width:1000px;margin:0 auto;padding:40px var(--gr) 110px var(--gl);color:var(--fg-mute);font-size:13px}
 .socials{display:flex;gap:22px;margin-bottom:18px;color:var(--fg)}
@@ -365,6 +369,7 @@ footer{max-width:1000px;margin:0 auto;padding:40px var(--gr) 110px var(--gl);col
   <span class="logo">CINESENSE</span>
   <h1>Who's watching?</h1>
   <div class="profiles" id="profiles"></div>
+  <div class="spinner" id="gateSpin" hidden></div>
   <button class="btn-ghost" data-act="manage">Manage Profiles</button>
 </div>
 
@@ -411,7 +416,8 @@ footer{max-width:1000px;margin:0 auto;padding:40px var(--gr) 110px var(--gl);col
     <button data-act="soon">Legal Notices</button><button data-act="soon">Cookie Preferences</button><button data-act="soon">Corporate Information</button><button data-act="soon">Contact Us</button>
   </div>
   <button class="svc" data-act="svc">Service Code</button>
-  <div>© 2026 CineSense · AI-Powered Semantic Movie &amp; Film Discovery System · Frontend demo, all titles and artwork are fictional samples.</div>
+  <div id="copyLine">© 2026 CineSense · AI-Powered Semantic Movie &amp; Film Discovery System · Frontend demo, all titles and artwork are fictional samples.</div>
+  <div id="tmdbCredit" hidden style="margin-top:8px">Movie and TV data and images from TMDB (themoviedb.org). This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
 </footer>
 
 <button id="ai-fab" aria-label="Open Mood AI"><span class="pulse"></span><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.9 4.8L19 9.7l-4.1 3.2 1.3 5.1L12 15.3 7.8 18l1.3-5.1L5 9.7l5.1-1.9z"/></svg><span class="lbl">Mood AI</span></button>
@@ -435,7 +441,12 @@ footer{max-width:1000px;margin:0 auto;padding:40px var(--gr) 110px var(--gl);col
 <div id="player" hidden></div>
 <div id="toasts" aria-live="polite"></div>
 
+<script src="config.js"></script>
 <script>
+/* =================== CONFIG (edit config.js, not this) =================== */
+const CFG = window.CINESENSE_CONFIG || {};
+const TMDB_KEY = /PASTE|YOUR/i.test(String(CFG.tmdbKey||'')) ? '' : String(CFG.tmdbKey||'').trim();
+
 /* =================== DATA =================== */
 const MOODS = {
   feelgood:{label:'Feel-Good',grad:'linear-gradient(135deg,#f7971e,#d4145a)'},
@@ -503,10 +514,10 @@ const UPCOMING = [
  mv('The Hush Below',2026,'movie','English',['horror','thriller'],['scary','dark'],[],'18+','Coming soon','forest',['#000','#7f5539'],'Cave divers find a sealed chamber that someone keeps knocking on from the other side.',['Holly Barnes','Ade Okafor'],{soon:['NOV','06']}),
  mv('Kite Season',2026,'movie','Hindi',['drama','comedy'],['feelgood','nostalgic','inspiring'],['family'],'U','Coming soon','sun',['#3c096c','#ff9e00'],'In old Ahmedabad, a shy boy and his grandmother train for the city\'s great kite festival.',['Dev Patel Jr.','Shabana Ali'],{soon:['NOV','14']}),
 ];
-const ALL = [...CATALOG, ...UPCOMING];
-const byId = id => ALL.find(m => m.id === +id);
-const TOP10 = [1,7,12,11,26,2,9,27,6,20];
-const FEATURED = [1,12,7,26,9];
+const byId = id => CATALOG.find(m => m.id === +id) || UPCOMING.find(m => m.id === +id);
+let TOP10 = [1,7,12,11,26,2,9,27,6,20];
+let FEATURED = [1,12,7,26,9];
+const SAMPLE_CAT = [...CATALOG], SAMPLE_UP = [...UPCOMING];
 const PROFILES = [
  {name:'Arjun',color:'#e50914'},{name:'Meera',color:'#2b7bf3'},{name:'Kavin',color:'#f5b700'},{name:'Kids',color:'#20b26b',kids:true}
 ];
@@ -522,7 +533,12 @@ const state = {
   downloads:new Set(store.get('dl',[])), reminders:new Set(store.get('rem',[])),
   notifs:[], unread:0, muted:true, heroIdx:0, lang:'Tamil'
 };
-const save = () => { store.set('list',[...state.list]); store.set('liked',[...state.liked]); store.set('dl',[...state.downloads]); store.set('rem',[...state.reminders]); };
+const save = () => {
+  store.set('list',[...state.list]); store.set('liked',[...state.liked]); store.set('dl',[...state.downloads]); store.set('rem',[...state.reminders]);
+  // remember real TMDB titles the viewer saved, so My List still shows them next time
+  const keep=[]; new Set([...state.list,...state.liked,...state.downloads,...state.reminders]).forEach(id=>{ const m=byId(id); if(m&&m.tmdb){ const {episodes,similarIds,detailed,...rest}=m; keep.push(rest);} });
+  store.set('items',keep);
+};
 
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
@@ -631,7 +647,20 @@ const MOTIF = {
 };
 
 const ART = new Map();
+const IMG='https://image.tmdb.org/t/p/';
 function art(m, kind){
+  if(m.tmdb){
+    if(kind==='poster' && m.poster) return IMG+'w342'+m.poster;
+    if(kind==='hero' && m.backdrop) return IMG+'w1280'+m.backdrop;
+    if(kind==='card' && m.backdrop) return IMG+'w780'+m.backdrop;
+    if(m.poster) return IMG+'w500'+m.poster;
+  }
+  return genArt(m,kind);
+}
+const src = (m,k) => `src="${art(m,k)}" data-fb="${m.id}|${k}"`;
+// if a real image fails to load (offline / blocked), draw a generated one instead
+document.addEventListener('error',e=>{ const im=e.target; if(im.tagName!=='IMG'||!im.dataset.fb) return; const [id,k]=im.dataset.fb.split('|'); im.removeAttribute('data-fb'); const m=byId(id); if(m) im.src=genArt(m,k); },true);
+function genArt(m, kind){
   const key = m.id+kind; if(ART.has(key)) return ART.get(key);
   const [w,h] = kind==='poster'?[340,510]:kind==='hero'?[1600,900]:[640,360];
   const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d');
@@ -670,15 +699,16 @@ function similarity(a,b){
   return inter/ (new Set([...A,...B]).size) + (a.lang===b.lang?.08:0);
 }
 function similar(m,n=9){
+  if(m.similarIds && m.similarIds.length) return m.similarIds.map(byId).filter(Boolean).slice(0,n).map(o=>({o,s:Math.max(.45,similarity(m,o))}));
   return CATALOG.filter(o=>o.id!==m.id).map(o=>({o,s:similarity(m,o)})).sort((x,y)=>y.s-x.s).slice(0,n);
 }
 
 /* =================== CARDS & ROWS =================== */
 function cardHTML(m,kind='land',i=0){
-  if(kind==='top') return `<div class="topcard"><span class="num" aria-hidden="true">${i+1}</span><button class="card tall" data-open="${m.id}" data-hover="${m.id}" aria-label="${esc(m.title)}"><img src="${art(m,'poster')}" alt="" loading="lazy">${m.isNew?'<span class="badge">Recently Added</span>':''}</button></div>`;
-  if(kind==='tall') return `<button class="card tall" data-open="${m.id}" data-hover="${m.id}" aria-label="${esc(m.title)}"><img src="${art(m,'poster')}" alt="" loading="lazy">${m.isNew?'<span class="badge">New</span>':''}</button>`;
+  if(kind==='top') return `<div class="topcard"><span class="num" aria-hidden="true">${i+1}</span><button class="card tall" data-open="${m.id}" data-hover="${m.id}" aria-label="${esc(m.title)}"><img ${src(m,'poster')} alt="" loading="lazy">${m.isNew?'<span class="badge">Recently Added</span>':''}</button></div>`;
+  if(kind==='tall') return `<button class="card tall" data-open="${m.id}" data-hover="${m.id}" aria-label="${esc(m.title)}"><img ${src(m,'poster')} alt="" loading="lazy">${m.isNew?'<span class="badge">New</span>':''}</button>`;
   const prog = kind==='cont' ? `<span class="prog"><i style="width:${20+(m.id*23)%70}%"></i></span>` : '';
-  return `<button class="card ${kind}" data-open="${m.id}" data-hover="${m.id}" aria-label="${esc(m.title)}"><img src="${art(m,'card')}" alt="" loading="lazy"><span class="cmark">C</span>${m.isNew&&kind!=='cont'?'<span class="badge">New Episodes</span>'.replace('New Episodes',m.type==='series'?'New Episodes':'Recently Added'):''}<span class="card-title">${esc(m.title)}</span>${prog}</button>`;
+  return `<button class="card ${kind}" data-open="${m.id}" data-hover="${m.id}" aria-label="${esc(m.title)}"><img ${src(m,'card')} alt="" loading="lazy"><span class="cmark">C</span>${m.isNew&&kind!=='cont'?'<span class="badge">New Episodes</span>'.replace('New Episodes',m.type==='series'?'New Episodes':'Recently Added'):''}<span class="card-title">${esc(m.title)}</span>${prog}</button>`;
 }
 function rowHTML(title,items,kind='land',extra=''){
   if(!items.length) return '';
@@ -702,12 +732,14 @@ const shuffle = (arr,seed) => { const r=rng(seed); return [...arr].sort(()=>r()-
 /* =================== HERO =================== */
 let heroTimer=null, heroList=[];
 function heroHTML(m){
+  if(!m) return '';
+  const tl=m.title.length, fs = tl>30?'style="font-size:clamp(32px,4.4vw,68px)"':tl>16?'style="font-size:clamp(38px,5.8vw,92px)"':'';
   const isTop = TOP10.indexOf(m.id);
   return `<section class="hero" id="hero">
-    <img class="hero-art" src="${art(m,'hero')}" alt="">
+    <img class="hero-art" ${src(m,'hero')} alt="">
     <div class="hero-copy">
       <div class="kicker"><b>C</b> ${m.type==='series'?'SERIES':'FILM'}</div>
-      <h1 class="hero-title">${esc(m.title)}</h1>
+      <h1 class="hero-title" ${fs}>${esc(m.title)}</h1>
       ${isTop>=0?`<div class="top-badge"><span class="t10">TOP<br>10</span>#${isTop+1} in ${m.type==='series'?'TV Shows':'Movies'} Today</div>`:''}
       <p class="hero-desc">${esc(m.desc)}</p>
       <div class="btns">
@@ -717,7 +749,7 @@ function heroHTML(m){
     </div>
     <div class="hero-side">
       <button class="round" data-act="mute" aria-label="Toggle sound">${state.muted?I.mute:I.sound}</button>
-      <span class="maturity">${m.rating}</span>
+      <span class="maturity">${m.tmdb?(m.cert||m.rating):m.rating}</span>
     </div>
     ${heroList.length>1?`<div class="hero-dots">${heroList.map((h,i)=>`<button aria-label="Show ${esc(h.title)}" class="${h.id===m.id?'on':''}" data-hero="${i}"></button>`).join('')}</div>`:''}
   </section>`;
@@ -741,19 +773,47 @@ function render(){
   clearInterval(heroTimer); hidePreview();
   renderNav();
   const main=$('#main');
-  if(state.query) { main.innerHTML = searchHTML(state.query); return; }
+  if(state.query){
+    const qq=state.query, pending = !!LIVE && !HITCACHE.has(qq.toLowerCase());
+    main.innerHTML = searchHTML(qq,pending);
+    if(pending) enrich(qq).catch(()=>{}).finally(()=>{ if(state.query===qq) main.innerHTML=searchHTML(qq,false); });
+    return;
+  }
   const p=state.page, prof=state.profile;
   const kids = prof && prof.kids;
-  const pool = kids ? CATALOG.filter(m=>['U','7+'].includes(m.rating)) : CATALOG;
+  const pool = kids ? CATALOG.filter(kidsOK) : CATALOG;
   const f = fn => pool.filter(fn);
-  if(p==='home'){
+  if(p==='home' && LIVE){
+    const R = k => (LIVE.rows[k]||[]).map(byId).filter(m=>m&&pool.includes(m));
+    const feats = (kids ? pool : LIVE.featured.map(byId).filter(Boolean)).filter(m=>m.backdrop).slice(0,5);
+    startHero(feats.length?feats:pool.slice(0,1));
+    const lastLiked = [...state.liked].map(byId).filter(m=>m&&pool.includes(m)).pop() || R('trending')[2] || pool[0];
+    main.innerHTML = heroHTML(heroList[0]) + `<div class="rows">
+      ${rowHTML(`Continue Watching for ${esc(prof?.name||'You')}`, shuffle(R('trending').concat(R('popularTv')),7).slice(0,8),'cont')}
+      ${rowHTML('Trending Now', R('trending'))}
+      ${kids?rowHTML('Family &amp; Animation', R('animation'),'tall'):rowHTML('Top 10 Movies Today', TOP10.map(byId).filter(Boolean),'top')}
+      ${moodRowHTML()}
+      ${rowHTML('New in Cinemas', R('nowPlaying'))}
+      ${rowHTML('Tamil Movies', R('tamil'),'tall')}
+      ${rowHTML('Popular TV Shows', R('popularTv'))}
+      ${rowHTML('Feel-Good Picks', R('feelgood'))}
+      ${rowHTML('Hindi Movies', R('hindi'))}
+      ${rowHTML('Edge-of-Your-Seat Thrillers', R('thrillers'))}
+      ${rowHTML('Mind-Bending Sci-Fi', R('scifi'))}
+      ${lastLiked?rowHTML(`Because You Liked ${esc(lastLiked.title)}`, similar(lastLiked,12).map(x=>x.o).filter(m=>pool.includes(m))):''}
+      ${rowHTML('Korean Series', R('korean'))}
+      ${kids?'':rowHTML('Late-Night Scares', R('horror'))}
+      ${rowHTML('Tearjerkers', R('tearjerkers'))}
+      ${rowHTML('Critically Acclaimed', R('topRated'),'tall')}
+    </div>`;
+  } else if(p==='home'){
     const feats = kids ? pool.slice(0,3) : FEATURED.map(byId);
     startHero(feats);
-    const lastLiked = byId([...state.liked].pop() || 22);
+    const lastLiked = [...state.liked].map(byId).filter(Boolean).pop() || byId(22);
     main.innerHTML = heroHTML(feats[0]) + `<div class="rows">
       ${rowHTML(`Continue Watching for ${esc(prof?.name||'You')}`, shuffle(pool,7).slice(0,7),'cont')}
       ${rowHTML('Trending Now', shuffle(pool,3).slice(0,12))}
-      ${kids?'':rowHTML('Top 10 Movies in India Today', TOP10.map(byId),'top')}
+      ${kids?'':rowHTML('Top 10 Movies in India Today', TOP10.map(byId).filter(Boolean),'top')}
       ${moodRowHTML()}
       ${rowHTML('New Releases', f(m=>m.isNew))}
       ${rowHTML('Only on CineSense', shuffle(pool,11).slice(0,10),'tall')}
@@ -769,7 +829,7 @@ function render(){
   } else if(p==='series'||p==='movies'){
     const type = p==='series'?'series':'movie';
     const items = f(m=>m.type===type);
-    const feats = items.filter(m=>m.isNew).slice(0,3); startHero(feats.length?feats:items.slice(0,1));
+    const withArt = items.filter(m=>!m.tmdb||m.backdrop), feats = withArt.filter(m=>m.isNew).slice(0,3); startHero(feats.length?feats:withArt.slice(0,3));
     const byGenre = Object.keys(GENRE).map(g=>[GENRE[g],items.filter(m=>m.genres.includes(g))]).filter(([,a])=>a.length>=2);
     main.innerHTML = heroHTML(heroList[0]) + `<div class="rows">
       ${rowHTML(`Popular ${p==='series'?'TV Shows':'Movies'}`, shuffle(items,5))}
@@ -778,11 +838,11 @@ function render(){
     </div>`;
   } else if(p==='new'){
     main.innerHTML = `<div class="page-head"><h1>New &amp; Popular</h1></div>
-      <section class="row" style="margin-top:24px"><h2>Coming Soon</h2><div class="soon-list">${UPCOMING.map(soonHTML).join('')}</div></section>
+      <section class="row" style="margin-top:24px"><h2>Coming Soon</h2><div class="soon-list">${UPCOMING.length?UPCOMING.slice(0,8).map(soonHTML).join(''):'<p style="color:var(--fg-dim)">No upcoming titles right now.</p>'}</div></section>
       <div class="rows flat" style="padding-top:30px">
       ${rowHTML('Everyone\'s Watching', shuffle(CATALOG,13).slice(0,10))}
       ${rowHTML('Top 10 TV Shows in India Today', shuffle(CATALOG.filter(m=>m.type==='series'),4).slice(0,10),'top')}
-      ${rowHTML('Top 10 Movies in India Today', TOP10.map(byId),'top')}
+      ${rowHTML('Top 10 Movies in India Today', TOP10.map(byId).filter(Boolean),'top')}
       ${rowHTML('Worth the Wait', CATALOG.filter(m=>m.isNew),'tall')}</div>`;
   } else if(p==='mylist'){
     const items=[...state.list].map(byId).filter(Boolean);
@@ -790,7 +850,8 @@ function render(){
       ? `<div class="grid">${items.map(m=>cardHTML(m)).join('')}</div>`
       : `<div class="empty-state"><h2>You haven't added any titles yet.</h2><p>Tap the + button on any title to save it here for later.</p></div>`);
   } else if(p==='languages'){
-    const langs=[...new Set(CATALOG.map(m=>m.lang))].sort();
+    const langs=[...new Set(CATALOG.map(m=>m.lang))].filter(Boolean).sort();
+    if(!langs.includes(state.lang)) state.lang=langs.includes('Tamil')?'Tamil':langs[0];
     const items=CATALOG.filter(m=>m.lang===state.lang);
     main.innerHTML = `<div class="page-head"><h1>Browse by Languages</h1>
       <label for="langSel" style="color:var(--fg-dim)">Original language</label>
@@ -801,7 +862,7 @@ function render(){
 function soonHTML(m){
   const on = state.reminders.has(m.id);
   return `<article class="soon"><div class="date">${m.soon[0]}<b>${m.soon[1]}</b></div>
-    <div class="soon-body"><button class="card" data-open="${m.id}" aria-label="${esc(m.title)}"><img src="${art(m,'card')}" alt=""><span class="cmark">C</span><span class="card-title">${esc(m.title)}</span></button>
+    <div class="soon-body"><button class="card" data-open="${m.id}" aria-label="${esc(m.title)}"><img ${src(m,'card')} alt=""><span class="cmark">C</span><span class="card-title">${esc(m.title)}</span></button>
     <div><div class="soon-acts">
       <button class="mini-act" data-act="remind" data-id="${m.id}" aria-pressed="${on}">${on?I.bellOn:I.bell}<span>${on?'Reminder set':'Remind Me'}</span></button>
       <button class="mini-act" data-open="${m.id}">${I.info}<span>Info</span></button>
@@ -844,7 +905,7 @@ const LEX = {
     family:['family','kids','children','child','all ages'], noir:['noir','classic noir','film noir','hardboiled'],
     detective:['detective','investigat'], space:['space','astronaut','orbit','galaxy','planet']
   },
-  lang:{Tamil:['tamil','kollywood'],Hindi:['hindi','bollywood'],Korean:['korean','k-drama','kdrama'],Japanese:['japanese','anime'],Spanish:['spanish'],French:['french'],English:['english','hollywood']},
+  lang:{Tamil:['tamil','kollywood'],Hindi:['hindi','bollywood'],Korean:['korean','k-drama','kdrama'],Japanese:['japanese','anime'],Spanish:['spanish'],French:['french'],English:['english','hollywood'],Telugu:['telugu','tollywood'],Malayalam:['malayalam','mollywood'],Kannada:['kannada','sandalwood']},
   type:{series:['series','show','tv','binge','episodes'],movie:['movie','film']}
 };
 const STOP = new Set('the and for with that this want something some movie movies film films show shows like about watch need give please feel feeling really very more tonight today into from have what your best good'.split(' '));
@@ -879,8 +940,8 @@ function score(m,q){
 }
 function semanticSearch(text,n=24){
   const q=interpret(text);
-  const tl=text.toLowerCase().trim();
-  return {q, results: CATALOG.map(m=>{ const r=score(m,q); if(m.title.toLowerCase().includes(tl)) r.s+=10; if(m.cast.some(c=>c.toLowerCase().includes(tl))) r.s+=6; return {m,...r}; })
+  const tl=text.toLowerCase().trim(), hits=HITCACHE.get(tl);
+  return {q, results: CATALOG.map(m=>{ const r=score(m,q); if(hits) r.s+=hits.get(m.id)||0; if(m.title.toLowerCase().includes(tl)) r.s+=10; if(m.cast.some(c=>c.toLowerCase().includes(tl))) r.s+=6; return {m,...r}; })
     .filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,n)};
 }
 function understoodChips(q){
@@ -888,15 +949,16 @@ function understoodChips(q){
 }
 
 /* =================== SEARCH PAGE =================== */
-function searchHTML(text){
+function searchHTML(text,pending){
   const {q,results}=semanticSearch(text);
   const chips=understoodChips(q);
   const related = [...new Set(results.slice(0,6).flatMap(r=>r.m.moods))].slice(0,5);
   return `<div class="page-head"><h1>Results for "${esc(text)}"</h1></div>
+    ${pending?`<div class="understood"><span>Searching all movies and series on TMDB…</span></div>`:''}
     ${chips.length?`<div class="understood"><span>Semantic match understood:</span>${chips.map(c=>`<span class="chip">${esc(c)}</span>`).join('')}</div>`:''}
     ${related.length?`<div class="understood"><span>Explore moods related to your search:</span>${related.map(k=>`<button class="chip" data-act="mood" data-mood="${k}">${MOODS[k].label}</button>`).join('')}</div>`:''}
     ${results.length?`<div class="grid">${results.map(r=>cardHTML(r.m)).join('')}</div>`
-    :`<div class="empty-state"><h2>Your search for "${esc(text)}" did not have any matches.</h2><p>Try describing a mood or theme instead, like "something funny for a rainy evening" or "uplifting sci-fi with a strong female lead". You can also ask Mood AI.</p><p><button class="chip on" data-act="ai" data-q="${esc(text)}">Ask Mood AI</button></p></div>`}`;
+    :pending?'':`<div class="empty-state"><h2>Your search for "${esc(text)}" did not have any matches.</h2><p>Try describing a mood or theme instead, like "something funny for a rainy evening" or "uplifting sci-fi with a strong female lead". You can also ask Mood AI.</p><p><button class="chip on" data-act="ai" data-q="${esc(text)}">Ask Mood AI</button></p></div>`}`;
 }
 
 /* =================== HOVER PREVIEW =================== */
@@ -913,13 +975,14 @@ function actsHTML(m,big){
     ${big?'':`<button class="cbtn" data-open="${m.id}" data-tip="Episodes &amp; info" aria-label="More info">${I.down}</button>`}
   </div>`;
 }
-function metaHTML(m){ return `<div class="meta"><span class="match">${m.match}% Match</span><span class="rate">${m.rating}</span><span>${m.dur}</span><span class="hd">HD</span></div>`; }
+function rateHTML(m){ return m.tmdb ? `${m.cert?`<span class="rate">${esc(m.cert)}</span>`:''}<span><span class="star">★</span> ${m.vote?m.vote.toFixed(1):'New'}</span>` : `<span class="rate">${m.rating}</span>`; }
+function metaHTML(m){ return `<div class="meta"><span class="match">${m.match}% Match</span>${rateHTML(m)}<span>${m.dur}</span><span class="hd">HD</span></div>`; }
 function showPreview(card){
   const m=byId(card.dataset.hover); if(!m) return;
   const r=card.getBoundingClientRect(); if(r.width<10) return;
   const w=Math.max(r.width*1.5,300); let left=r.left+r.width/2-w/2;
   left=Math.max(8,Math.min(left,innerWidth-w-8));
-  pv.innerHTML=`<div class="pv-art" data-open="${m.id}"><img src="${art(m,'card')}" alt=""><span class="cmark">C</span><span class="card-title">${esc(m.title)}</span></div>
+  pv.innerHTML=`<div class="pv-art" data-open="${m.id}"><img ${src(m,'card')} alt=""><span class="cmark">C</span><span class="card-title">${esc(m.title)}</span></div>
     <div class="pv-body">${actsHTML(m)}${metaHTML(m)}<div class="tags">${tagLine(m).map(t=>`<span>${t}</span>`).join('')}</div></div>`;
   pv.style.width=w+'px'; pv.style.left=left+'px';
   pv.hidden=false;
@@ -943,14 +1006,25 @@ addEventListener('scroll',()=>{ if(!pv.hidden) hidePreview(); },{passive:true});
 /* =================== MODAL =================== */
 const modalWrap=$('#modalWrap');
 const EP_NAMES=['Beginnings','First Light','Crossroads','What Remains','The Long Night','Homecoming','Static','Breaking Point'];
-function openModal(id){
-  const m=byId(id); if(!m) return; hidePreview();
+let modalId=null;
+function castText(m){ return m.cast.length ? m.cast.map(esc).join(', ') : (m.tmdb && !m.detailed ? 'Loading…' : 'Not available'); }
+function episodesHTML(m){
+  if(m.type!=='series') return '';
+  const head = n => `<h3>Episodes <small style="font-size:14px;color:var(--fg-dim);font-weight:400">· Season ${n}</small></h3>`;
+  if(m.tmdb){
+    if(!m.episodes) return `<section><h3>Episodes</h3><p style="color:var(--fg-dim)">Loading episodes…</p></section>`;
+    if(!m.episodes.length) return '';
+    return `<section>${head(1)}<div class="eps">${m.episodes.map((e,i)=>`<button class="ep" data-act="play" data-id="${m.id}"><span class="n">${i+1}</span><img ${e.still?`src="${IMG}w300${e.still}" data-fb="${m.id}|card"`:src(m,'card')} alt="" loading="lazy"><span><b><span>${esc(e.name||'Episode '+(i+1))}</span><span style="color:var(--fg-dim);font-size:13px">${e.runtime?e.runtime+'m':''}</span></b><small>${esc(e.overview||'')}</small></span></button>`).join('')}</div></section>`;
+  }
+  const n=m.dur.split(' ')[0];
+  return `<section>${head(n)}<div class="eps">${EP_NAMES.slice(0,5+m.id%3).map((t,i)=>`<button class="ep" data-act="play" data-id="${m.id}"><span class="n">${i+1}</span><img ${src(m,'card')} alt=""><span><b><span>${t}</span><span style="color:var(--fg-dim);font-size:13px">${42+((m.id+i)*7)%18}m</span></b><small>Episode ${i+1} of ${esc(m.title)}. ${i===0?esc(m.desc):'The story deepens as old secrets come back to the surface.'}</small></span></button>`).join('')}</div></section>`;
+}
+function openModal(id,keep){
+  const m=byId(id); if(!m) return; hidePreview(); modalId=m.id;
   const sims=similar(m,9);
-  const eps = m.type==='series' ? `<section><h3>Episodes <small style="font-size:14px;color:var(--fg-dim);font-weight:400">· ${m.dur.split(' ')[0]==='1'?'Season 1':'Season '+m.dur.split(' ')[0]}</small></h3><div class="eps">${
-    EP_NAMES.slice(0,5+m.id%3).map((n,i)=>`<button class="ep" data-act="play" data-id="${m.id}"><span class="n">${i+1}</span><img src="${art(m,'card')}" alt=""><span><b><span>${n}</span><span style="color:var(--fg-dim);font-size:13px">${42+((m.id+i)*7)%18}m</span></b><small>Episode ${i+1} of ${esc(m.title)}. ${i===0?esc(m.desc):'The story deepens as old secrets come back to the surface.'}</small></span></button>`).join('')
-  }</div></section>` : '';
+  const eps = episodesHTML(m);
   modalWrap.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(m.title)}">
-    <div class="m-hero"><img src="${art(m,'hero')}" alt=""><button class="x" data-close aria-label="Close">${I.x}</button>
+    <div class="m-hero"><img ${src(m,'hero')} alt=""><button class="x" data-close aria-label="Close">${I.x}</button>
       <div class="m-hero-copy"><h2>${esc(m.title)}</h2>
       ${m.soon?`<div class="btns"><button class="btn btn-play" data-act="remind" data-id="${m.id}">${state.reminders.has(m.id)?I.bellOn:I.bell} ${state.reminders.has(m.id)?'Reminder Set':'Remind Me'}</button></div>`
       :`<div class="acts" style="gap:10px"><button class="btn btn-play" data-act="play" data-id="${m.id}">${I.play} ${m.type==='series'?'Resume':'Play'}</button>${actsHTML(m,true).replace(/<button class="cbtn primary"[^]*?<\/button>/,'').replace('<div class="acts">','').replace(/<\/div>\s*$/,'')}</div>`}
@@ -959,42 +1033,52 @@ function openModal(id){
       <div class="m-cols"><div>${metaHTML(m)}<div class="meta" style="margin-top:6px"><span>${m.year}</span><span>${m.lang}</span>${m.soon?`<span style="color:var(--red);font-weight:700">Arrives ${m.soon.join(' ')}</span>`:''}</div>
         ${TOP10.includes(m.id)?`<div class="top-badge" style="margin-top:12px;font-size:16px"><span class="t10">TOP<br>10</span>#${TOP10.indexOf(m.id)+1} in Movies Today</div>`:''}
         <p>${esc(m.desc)}</p></div>
-      <div><p class="kv">Cast: <span>${m.cast.map(esc).join(', ')}</span></p>
+      <div><p class="kv">Cast: <span>${castText(m)}</span></p>
         <p class="kv">Genres: <span>${genreLabels(m).join(', ')}</span></p>
         <p class="kv">This title is: ${m.moods.map(k=>`<button data-act="mood" data-mood="${k}">${MOODS[k].label}</button>`).join(', ')}</p></div></div>
       ${eps}
-      <section><h3>More Like This</h3><div class="sim">${sims.map(({o,s})=>`<div class="sim-card"><div class="art" data-open="${o.id}"><img src="${art(o,'card')}" alt="" loading="lazy"><span class="cmark">C</span><span class="dur">${o.dur}</span><span class="card-title">${esc(o.title)}</span></div>
-        <div class="bd"><div class="row1"><div><span class="match">${Math.min(99,Math.round(55+s*60))}% Match</span><div class="meta"><span class="rate">${o.rating}</span><span>${o.year}</span></div></div>
+      <section><h3>More Like This</h3><div class="sim">${sims.map(({o,s})=>`<div class="sim-card"><div class="art" data-open="${o.id}"><img ${src(o,'card')} alt="" loading="lazy"><span class="cmark">C</span><span class="dur">${o.dur}</span><span class="card-title">${esc(o.title)}</span></div>
+        <div class="bd"><div class="row1"><div><span class="match">${Math.min(99,Math.round(55+s*60))}% Match</span><div class="meta">${rateHTML(o)}<span>${o.year}</span></div></div>
         <button class="cbtn" data-act="list" data-id="${o.id}" aria-pressed="${inList(o.id)}" data-tip="${inList(o.id)?'Remove from My List':'Add to My List'}" aria-label="My List">${inList(o.id)?I.check:I.plus}</button></div>
         <p style="margin:0">${esc(o.desc)}</p></div></div>`).join('')}</div></section>
       <section class="about"><h3>About ${esc(m.title)}</h3>
-        <p>Cast: <span style="color:var(--fg)">${m.cast.map(esc).join(', ')}</span></p>
+        <p>Cast: <span style="color:var(--fg)">${castText(m)}</span></p>
         <p>Genres: <span style="color:var(--fg)">${genreLabels(m).join(', ')}</span></p>
         <p>Mood profile: <span style="color:var(--fg)">${moodLabels(m).join(', ')}</span>${m.tags.length?` · Themes: <span style="color:var(--fg)">${m.tags.map(t=>TAGS[t]).join(', ')}</span>`:''}</p>
-        <p>Maturity rating: <span class="rate">${m.rating}</span></p></section>
+        <p>${m.tmdb?`Rating: ${rateHTML(m)}`:`Maturity rating: <span class="rate">${m.rating}</span>`}</p></section>
     </div></div>`;
-  modalWrap.hidden=false; modalWrap.scrollTop=0; document.body.classList.add('lock');
-  $('.x',modalWrap).focus({preventScroll:true});
+  modalWrap.hidden=false; document.body.classList.add('lock');
+  if(!keep){ modalWrap.scrollTop=0; $('.x',modalWrap).focus({preventScroll:true}); }
+  if(m.tmdb && !m.detailed && TMDB_KEY){
+    const again=()=>{ if(modalId===m.id && !modalWrap.hidden){ const st=modalWrap.scrollTop; openModal(m.id,true); modalWrap.scrollTop=st; } };
+    ensureDetails(m).then(again,()=>{ m.detailed=true; m.episodes=m.episodes||[]; again(); });
+  }
 }
-function closeModal(){ modalWrap.hidden=true; modalWrap.innerHTML=''; if($('#player').hidden && $('#ai').hidden) document.body.classList.remove('lock'); }
+function closeModal(){ modalId=null; modalWrap.hidden=true; modalWrap.innerHTML=''; if($('#player').hidden && $('#ai').hidden) document.body.classList.remove('lock'); }
 modalWrap.addEventListener('click',e=>{ if(e.target===modalWrap||e.target.closest('[data-close]')) closeModal(); });
 
 /* =================== PLAYER =================== */
-const player=$('#player'); let plT=null;
+const player=$('#player'); let playTok=0;
 function openPlayer(m){
   hidePreview();
-  player.innerHTML=`<img class="bgart" src="${art(m,'hero')}" alt=""><button class="back" data-closeplayer>${I.back} Back to Browse</button>
+  player.innerHTML=`<img class="bgart" ${src(m,'hero')} alt=""><button class="back" data-closeplayer>${I.back} Back to Browse</button>
     <div class="pl-box"><div class="spinner"></div><h2>${esc(m.title)}</h2><p>Loading…</p></div>
     <div class="pl-bar"><span>0:00</span><div class="rail"><i></i></div><span>${esc(m.dur)}</span></div>`;
   player.hidden=false; document.body.classList.add('lock');
-  clearTimeout(plT);
-  plT=setTimeout(()=>{ $('.pl-box',player).innerHTML=`<svg class="ico" viewBox="0 0 24 24" style="width:56px;height:56px;color:var(--red)"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+  const tok=++playTok;
+  const det = (m.tmdb && TMDB_KEY && !m.detailed) ? ensureDetails(m).catch(()=>m) : Promise.resolve(m);
+  Promise.all([det,new Promise(r=>setTimeout(r,1400))]).then(()=>{
+    if(tok!==playTok || player.hidden) return;
+    $('.pl-bar span:last-child',player).textContent=m.dur;
+    const trailer = m.trailer ? `<a class="btn btn-play" href="https://www.youtube.com/watch?v=${encodeURIComponent(m.trailer)}" target="_blank" rel="noopener">${I.play} Watch Trailer</a>` : '';
+    $('.pl-box',player).innerHTML=`<svg class="ico" viewBox="0 0 24 24" style="width:56px;height:56px;color:var(--red)"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
     <h2>This title can't be played right now</h2>
-    <p>Streaming for <b style="color:#fff">${esc(m.title)}</b> isn't available yet. Playback will open once the video service is connected to CineSense.</p>
+    <p>Streaming for <b style="color:#fff">${esc(m.title)}</b> isn't available yet. Playback will open once the video service is connected to CineSense.${m.trailer?' You can watch the official trailer on YouTube.':''}</p>
     <span class="code">ERROR CODE: CS-STREAM-NOT-READY</span>
-    <div class="btns" style="justify-content:center;margin-top:6px"><button class="btn btn-play" data-closeplayer>Back to Browse</button><button class="btn btn-info" data-act="download" data-id="${m.id}">${I.dl} Download instead</button></div>`; },1400);
+    <div class="btns" style="justify-content:center;margin-top:6px">${trailer}<button class="btn ${m.trailer?'btn-info':'btn-play'}" data-closeplayer>Back to Browse</button>${m.trailer?'':`<button class="btn btn-info" data-act="download" data-id="${m.id}">${I.dl} Download instead</button>`}</div>`;
+  });
 }
-function closePlayer(){ clearTimeout(plT); player.hidden=true; player.innerHTML=''; if(modalWrap.hidden && $('#ai').hidden) document.body.classList.remove('lock'); }
+function closePlayer(){ playTok++; player.hidden=true; player.innerHTML=''; if(modalWrap.hidden && $('#ai').hidden) document.body.classList.remove('lock'); }
 player.addEventListener('click',e=>{ if(e.target.closest('[data-closeplayer]')) closePlayer(); });
 
 /* =================== TOASTS & NOTIFICATIONS =================== */
@@ -1011,8 +1095,8 @@ function notify(text,id){
 }
 function renderBell(){
   const dot=$('#bellDot'); dot.hidden=!state.unread; dot.textContent=state.unread;
-  $('#bellMenu').innerHTML = state.notifs.length ? state.notifs.map(n=>{ const m=byId(n.id);
-    return `<button class="notif" data-open="${n.id}"><img src="${art(m,'card')}" alt=""><span><b>${n.text}</b><small>${n.time}</small></span></button>`; }).join('')
+  $('#bellMenu').innerHTML = state.notifs.length ? state.notifs.filter(n=>byId(n.id)).map(n=>{ const m=byId(n.id);
+    return `<button class="notif" data-open="${n.id}"><img ${src(m,'card')} alt=""><span><b>${n.text}</b><small>${n.time}</small></span></button>`; }).join('')
     : `<div class="empty">No notifications yet</div>`;
 }
 function startDownload(m){
@@ -1117,12 +1201,18 @@ $('#qClear').addEventListener('click',()=>{ q.value=''; state.query=''; search.c
 /* =================== PROFILES =================== */
 function avHTML(p){ return `<span class="face"></span><span class="smile"></span>`; }
 function setAv(el,p){ el.style.background=p.color; el.innerHTML=avHTML(p); }
+function gateLoading(on){
+  $('#gate h1').textContent = on ? 'Loading movies…' : "Who's watching?";
+  $('#profiles').hidden=on; $('#gate .btn-ghost').hidden=on; $('#gateSpin').hidden=!on;
+}
 function showGate(){
+  gateLoading(false);
   $('#profiles').innerHTML=PROFILES.map((p,i)=>`<button class="profile" data-pick="${i}"><span class="av" style="background:${p.color}">${avHTML(p)}</span><span>${p.name}</span></button>`).join('');
   $('#gate').hidden=false; document.body.classList.add('lock');
 }
 $('#profiles').addEventListener('click',e=>{ const b=e.target.closest('[data-pick]'); if(b) chooseProfile(+b.dataset.pick); });
-function chooseProfile(i){
+async function chooseProfile(i){
+  if(liveReady && !liveDone){ gateLoading(true); await liveReady; gateLoading(false); }
   state.profile=PROFILES[i]; state.page='home';
   setAv($('#meAv'),state.profile);
   $('#meMenu').innerHTML = PROFILES.map((p,j)=>j===i?'':`<button data-act="switch" data-p="${j}"><span class="av" style="background:${p.color}">${avHTML(p)}</span><span>${p.name}</span></button>`).join('')
@@ -1130,10 +1220,15 @@ function chooseProfile(i){
   $('#gate').hidden=true; document.body.classList.remove('lock');
   render(); scrollTo({top:0});
   if(!state.notifs.length){
-    [['New arrival: Starfall Protocol is now streaming',1],['Season 2 of Neon Requiem is here',12],['Because you liked Letters to Nobody: try Kaadhal Kadal',7],['Coming Oct 23: Orbit of Ashes',UPCOMING[0].id]]
-      .reverse().forEach(([t,id])=>notify(t,id));
+    let seed;
+    if(LIVE){
+      const g=k=>(LIVE.rows[k]||[]).map(byId).filter(Boolean), np=g('nowPlaying')[0], tv=g('popularTv')[0], tr=g('trending')[3], up=UPCOMING[0];
+      seed=[np&&[`New in cinemas: ${esc(np.title)}`,np.id], tv&&[`Popular this week: ${esc(tv.title)}`,tv.id], tr&&[`Trending now: ${esc(tr.title)}`,tr.id], up&&[`Coming ${up.soon.join(' ')}: ${esc(up.title)}`,up.id]].filter(Boolean);
+    } else seed=[['New arrival: Starfall Protocol is now streaming',1],['Season 2 of Neon Requiem is here',12],['Because you liked Letters to Nobody: try Kaadhal Kadal',7],['Coming Oct 23: Orbit of Ashes',UPCOMING[0].id]];
+    seed.reverse().forEach(([t,id])=>notify(t,id));
     state.notifs.forEach((n,k)=>n.time=['2 hours ago','Yesterday','2 days ago','3 days ago'][k]); renderBell();
   }
+  if(pendingToast){ toast(...pendingToast); pendingToast=null; }
 }
 
 /* =================== MOOD AI =================== */
@@ -1171,7 +1266,8 @@ const LEADS = {
 function send(text){
   addMsg(`<p>${esc(text)}</p>`,'user');
   const typing=addMsg('<div class="typing"><i></i><i></i><i></i></div>','bot');
-  setTimeout(()=>{
+  setTimeout(async ()=>{
+    if(LIVE) await enrich(text).catch(()=>{});
     typing.remove();
     const {q,results}=semanticSearch(text,10);
     const chips=understoodChips(q);
@@ -1185,7 +1281,7 @@ function send(text){
     else if(facets>1 && (q.genres.size||q.tags.size||q.langs.size)) lead = `Here are my top picks for "${esc(text)}", matched on meaning, themes and mood rather than exact keywords.`;
     else if(q.moods.has('sad')) lead = LEADS.sad;
     else lead = (first && LEADS[first]) || `Here's what matches "${esc(text)}" by theme and mood.`;
-    const picks=results.slice(0,8).map(r=>`<button class="pick" data-open="${r.m.id}"><img src="${art(r.m,'poster')}" alt=""><b>${esc(r.m.title)}</b><small>${Math.min(99,Math.round(62+r.s*4))}% match</small></button>`).join('');
+    const picks=results.slice(0,8).map(r=>`<button class="pick" data-open="${r.m.id}"><img ${src(r.m,'poster')} alt=""><b>${esc(r.m.title)}</b><small>${Math.min(99,Math.round(62+r.s*4))}% match</small></button>`).join('');
     bot(lead, `${chips.length?`<div class="why">I understood: ${chips.map(c=>`<span class="chip">${esc(c)}</span>`).join('')}</div>`:''}<div class="picks">${picks}</div>
       <div class="why">Tap a poster for details · <button class="chip" data-act="ai-search" data-q="${esc(text)}">See all ${results.length} results</button></div>`);
   },650+Math.random()*500);
@@ -1194,6 +1290,151 @@ log.addEventListener('click',e=>{
   const b=e.target.closest('[data-act="ai-search"]'); if(!b) return;
   e.stopPropagation(); closeAI(); q.value=b.dataset.q; search.classList.add('open','has'); state.query=b.dataset.q; render(); scrollTo({top:0});
 },true);
+
+/* =================== TMDB (real movies) =================== */
+let LIVE=null, liveDone=false, pendingToast=null;
+const HITCACHE=new Map();
+const TODAY=new Date().toISOString().slice(0,10);
+const LANG_NAME={en:'English',ta:'Tamil',hi:'Hindi',ko:'Korean',ja:'Japanese',es:'Spanish',fr:'French',te:'Telugu',ml:'Malayalam',kn:'Kannada',zh:'Chinese',cn:'Cantonese',it:'Italian',de:'German',pt:'Portuguese',th:'Thai',tr:'Turkish'};
+const LANG_CODE=Object.fromEntries(Object.entries(LANG_NAME).map(([c,n])=>[n,c]));
+// TMDB genre id -> CineSense genres (g), moods (m) and themes (t). This is the "shared semantic space".
+const GMAP={28:{g:['action'],m:['thrilling','adventurous']},12:{g:['adventure'],m:['adventurous']},16:{g:['animation'],m:['feelgood'],t:['family']},
+ 35:{g:['comedy'],m:['funny','feelgood']},80:{g:['crime'],m:['dark','thrilling']},99:{g:['documentary'],m:['inspiring','chill']},18:{g:['drama'],m:['sad']},
+ 10751:{m:['feelgood','chill'],t:['family']},14:{g:['fantasy'],m:['adventurous']},36:{g:['history'],m:['inspiring']},27:{g:['horror'],m:['scary','dark']},
+ 10402:{m:['feelgood']},9648:{g:['mystery'],m:['mindbending']},10749:{g:['romance'],m:['romantic']},878:{g:['scifi'],m:['mindbending']},
+ 53:{g:['thriller'],m:['thrilling']},10752:{g:['history'],m:['sad','inspiring']},37:{g:['western'],m:['adventurous']},
+ 10759:{g:['action','adventure'],m:['thrilling','adventurous']},10762:{g:['animation'],m:['feelgood'],t:['family']},
+ 10765:{g:['scifi','fantasy'],m:['mindbending','adventurous']},10768:{g:['history'],m:['dark']},10766:{g:['drama'],m:['romantic']},10764:{m:['funny']}};
+// mood / genre -> TMDB genre ids used when asking TMDB for more titles ("|" = any of)
+const MOOD_G={movie:{feelgood:'35|10751',sad:'18',thrilling:'53|28',romantic:'10749',scary:'27',mindbending:'878|9648',inspiring:'36|99',funny:'35',chill:'16|10751|99',dark:'80',adventurous:'12|14'},
+              tv:{feelgood:'35|10751',sad:'18',thrilling:'10759|80',romantic:'18',scary:'9648',mindbending:'10765|9648',inspiring:'99',funny:'35',chill:'16|10751',dark:'80',adventurous:'10759|10765'}};
+const GENRE_G={movie:{scifi:878,crime:80,thriller:53,horror:27,comedy:35,romance:10749,drama:18,action:28,animation:16,documentary:99,fantasy:14,mystery:9648,adventure:12,western:37,history:36},
+               tv:{scifi:10765,crime:80,thriller:9648,horror:9648,comedy:35,romance:18,drama:18,action:10759,animation:16,documentary:99,fantasy:10765,mystery:9648,adventure:10759,western:37,history:10768}};
+const kidsOK = m => m.tmdb ? ((m.tags.includes('family')||m.genres.includes('animation')) && !m.genres.includes('horror') && !m.adult) : ['U','7+'].includes(m.rating);
+
+async function tmdb(path, params={}){
+  const u=new URL('https://api.themoviedb.org/3'+path), bearer=TMDB_KEY.length>60;  // long key = "Read Access Token"
+  if(!bearer) u.searchParams.set('api_key',TMDB_KEY);
+  u.searchParams.set('language','en-US');
+  for(const [k,v] of Object.entries(params)) u.searchParams.set(k,v);
+  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),10000);
+  try{
+    const r=await fetch(u,{headers:bearer?{Authorization:'Bearer '+TMDB_KEY}:{},signal:ctl.signal});
+    if(!r.ok) throw new Error('TMDB '+r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+function fromTmdb(r,type,id){
+  const genres=new Set(), moods=new Set(), tags=new Set();
+  (r.genre_ids||(r.genres||[]).map(g=>g.id)).forEach(g=>{ const x=GMAP[g]; if(!x) return; (x.g||[]).forEach(v=>genres.add(v)); (x.m||[]).forEach(v=>moods.add(v)); (x.t||[]).forEach(v=>tags.add(v)); });
+  const date=r.release_date||r.first_air_date||'', year=+date.slice(0,4)||'';
+  if(year && year<2005) moods.add('nostalgic');
+  if(r.vote_average>=7.8 && genres.has('drama')) moods.add('inspiring');
+  if(!moods.size) moods.add('chill');
+  const pals=SAMPLE_CAT.map(x=>x.pal), motifs=Object.keys(MOTIF);
+  return {id, tmdbId:r.id, tmdb:true, title:r.title||r.name||'Untitled', year, date, type:type==='tv'?'series':'movie',
+    lang:LANG_NAME[r.original_language]||(r.original_language||'').toUpperCase(), genres:[...genres], moods:[...moods], tags:[...tags],
+    vote:r.vote_average||0, rating:r.vote_average?'★ '+r.vote_average.toFixed(1):'New', dur:type==='tv'?'Series':'Film',
+    desc:r.overview||'No description available yet.', cast:[], match:r.vote_average?Math.min(99,Math.round(62+r.vote_average*4)):80,
+    poster:r.poster_path||null, backdrop:r.backdrop_path||null, adult:!!r.adult, motif:motifs[r.id%motifs.length], pal:pals[r.id%pals.length], isNew:false};
+}
+function addItem(r,hint){
+  if(!r || (r.media_type && !['movie','tv'].includes(r.media_type))) return null;
+  const type=r.media_type||hint||(r.title?'movie':'tv'), id=r.id*10+(type==='tv'?2:1);
+  const ex=byId(id); if(ex) return ex;
+  if(!r.poster_path && !r.backdrop_path) return null;
+  const m=fromTmdb(r,type,id); CATALOG.push(m); return m;
+}
+function soonDate(d){ const dt=new Date(d+'T00:00:00'); return [dt.toLocaleString('en',{month:'short'}).toUpperCase(), String(dt.getDate()).padStart(2,'0')]; }
+
+async function loadLive(){
+  const R=CFG.region||'IN', D={sort_by:'popularity.desc','vote_count.gte':200,'primary_release_date.lte':TODAY};
+  const reqs={
+    trending:['/trending/all/week'], top10:['/trending/movie/day'], nowPlaying:['/movie/now_playing',{region:R}], popularTv:['/tv/popular'],
+    tamil:['/discover/movie',{...D,'vote_count.gte':5,with_original_language:'ta'}], hindi:['/discover/movie',{...D,'vote_count.gte':5,with_original_language:'hi'}],
+    feelgood:['/discover/movie',{...D,with_genres:'35|10751'}], thrillers:['/discover/movie',{...D,with_genres:'53'}], scifi:['/discover/movie',{...D,with_genres:'878'}],
+    korean:['/discover/tv',{sort_by:'popularity.desc','vote_count.gte':20,with_original_language:'ko'}], horror:['/discover/movie',{...D,with_genres:'27'}],
+    tearjerkers:['/discover/movie',{...D,with_genres:'18,10749',sort_by:'vote_average.desc','vote_count.gte':2000}], topRated:['/movie/top_rated'],
+    animation:['/discover/movie',{...D,with_genres:'16'}], upcoming:['/movie/upcoming',{region:R}]
+  };
+  const keys=Object.keys(reqs), res=await Promise.allSettled(keys.map(k=>tmdb(...reqs[k])));
+  if(!res.some(r=>r.status==='fulfilled')) throw (res[0].reason||new Error('TMDB failed'));
+  try{
+    CATALOG.length=0; UPCOMING.length=0; ART.clear();
+    const rows={};
+    keys.forEach((k,i)=>{
+      if(res[i].status!=='fulfilled') return;
+      const path=reqs[k][0], hint=path.includes('/tv')?'tv':path.includes('/movie')?'movie':null, list=res[i].value.results||[];
+      if(k==='upcoming'){
+        list.filter(r=>r.release_date>TODAY && r.poster_path).sort((a,b)=>a.release_date.localeCompare(b.release_date)).slice(0,8)
+          .forEach(r=>{ const m=fromTmdb(r,'movie',r.id*10+1); m.soon=soonDate(r.release_date); m.dur='Coming soon'; if(!byId(m.id)) UPCOMING.push(m); });
+        return;
+      }
+      rows[k]=list.map(r=>addItem(r,hint)).filter(Boolean).map(m=>m.id);
+    });
+    (rows.nowPlaying||[]).forEach(id=>byId(id).isNew=true);
+    store.get('items',[]).forEach(o=>{ if(o&&o.tmdb&&!byId(o.id)) (o.soon?UPCOMING:CATALOG).push(o); });
+    if(!CATALOG.length) throw new Error('TMDB returned no titles');
+    TOP10=(rows.top10||rows.trending||[]).slice(0,10);
+    LIVE={rows, featured:(rows.trending||[]).slice(0,6)};
+  } catch(err){
+    CATALOG.length=0; CATALOG.push(...SAMPLE_CAT); UPCOMING.length=0; UPCOMING.push(...SAMPLE_UP); LIVE=null; throw err;
+  }
+}
+async function ensureDetails(m){
+  if(!m.tmdb || m.detailed) return m;
+  const isTv=m.type==='series';
+  const d=await tmdb(`/${isTv?'tv':'movie'}/${m.tmdbId}`,{append_to_response:'credits,videos,recommendations,similar'+(isTv?',content_ratings':',release_dates')});
+  m.cast=(d.credits?.cast||[]).slice(0,6).map(c=>c.name);
+  if(isTv){ const n=d.number_of_seasons; m.dur=n?`${n} Season${n>1?'s':''}`:'Series'; }
+  else if(d.runtime){ m.dur=`${Math.floor(d.runtime/60)}h ${d.runtime%60}m`; }
+  const vids=(d.videos?.results||[]).filter(v=>v.site==='YouTube');
+  const tr=vids.find(v=>v.type==='Trailer'&&v.official)||vids.find(v=>v.type==='Trailer')||vids.find(v=>v.type==='Teaser')||vids[0];
+  if(tr) m.trailer=tr.key;
+  if(isTv){ const cr=d.content_ratings?.results||[]; m.cert=(cr.find(x=>x.iso_3166_1==='IN')||cr.find(x=>x.iso_3166_1==='US'))?.rating||m.cert; }
+  else { const rel=d.release_dates?.results||[], pick=c=>(rel.find(x=>x.iso_3166_1===c)?.release_dates||[]).map(x=>x.certification).find(Boolean); m.cert=pick('IN')||pick('US')||m.cert; }
+  const recs=(d.recommendations?.results||[]).length?d.recommendations.results:(d.similar?.results||[]);
+  m.similarIds=recs.map(r=>addItem(r,isTv?'tv':'movie')).filter(Boolean).map(x=>x.id).slice(0,12);
+  if(isTv){ try{ const se=await tmdb(`/tv/${m.tmdbId}/season/1`); m.episodes=(se.episodes||[]).slice(0,10).map(e=>({name:e.name,overview:e.overview,still:e.still_path,runtime:e.runtime})); } catch(e){ m.episodes=[]; } }
+  m.detailed=true;
+  return m;
+}
+function discoverParams(q,kind){
+  const gs=[...new Set([...q.genres].map(g=>GENRE_G[kind][g]).filter(Boolean))];
+  const ms=[...new Set([...q.moods].map(k=>MOOD_G[kind][k]).filter(Boolean).join('|').split('|').filter(Boolean))];
+  if(!gs.length && !ms.length && !q.langs.size && !q.moods.has('nostalgic')) return null;
+  const p={sort_by:'popularity.desc','vote_count.gte':q.langs.size?10:150};
+  p[kind==='tv'?'first_air_date.lte':'primary_release_date.lte'] = q.moods.has('nostalgic')?'2005-12-31':TODAY;
+  if(gs.length) p.with_genres=gs.join(','); else if(ms.length) p.with_genres=ms.join('|');
+  const av=[...new Set([...q.avoid].map(k=>MOOD_G[kind][k]).filter(Boolean).join('|').split('|').filter(Boolean))];
+  if(av.length) p.without_genres=av.join(',');
+  if(q.langs.size) p.with_original_language=[...q.langs].map(l=>LANG_CODE[l]).filter(Boolean).join('|');
+  return p;
+}
+// Ask TMDB for titles matching a search or mood, add them to the catalogue and remember which ones matched
+async function enrich(text){
+  const key=text.toLowerCase().trim();
+  if(!LIVE || !key || HITCACHE.has(key)) return;
+  const q=interpret(text), hits=new Map(), facets=q.moods.size+q.genres.size+q.langs.size+q.tags.size;
+  const add=(m,b)=>{ if(m && b>0) hits.set(m.id,Math.max(hits.get(m.id)||0,b)); };
+  const jobs=[tmdb('/search/multi',{query:text,include_adult:'false'}).then(d=>(d.results||[]).forEach((r,i)=>{
+    if(r.media_type==='person') (r.known_for||[]).forEach(k=>add(addItem(k),facets?3:7));
+    else { const m=addItem(r), t=(r.title||r.name||'').toLowerCase(); add(m, !facets ? 9-i*.3 : (t.includes(key)?9:0)); }
+  }))];
+  const kind=q.type==='series'?'tv':'movie', dp=discoverParams(q,kind);
+  if(dp) jobs.push(tmdb('/discover/'+kind,dp).then(d=>(d.results||[]).forEach((r,i)=>add(addItem(r,kind),3-i*.05))));
+  await Promise.allSettled(jobs);
+  HITCACHE.set(key,hits);
+}
+const liveReady = TMDB_KEY ? loadLive().then(()=>{
+    $('#tmdbCredit').hidden=false;
+    $('#copyLine').textContent='© 2026 CineSense · AI-Powered Semantic Movie & Film Discovery System · Frontend demo';
+    pendingToast=['Real movies loaded',`${CATALOG.length} movies and series from TMDB`,{ok:true,icon:I.check}];
+  }).catch(err=>{
+    console.warn('TMDB load failed:',err);
+    pendingToast = /401/.test(String(err&&err.message)) ? ['TMDB key not accepted','Check the key in config.js. Showing sample movies for now.',{time:6000}]
+      : ["Couldn't reach TMDB",'Your network may be blocking it. Showing sample movies for now.',{time:6000}];
+  }).finally(()=>{ liveDone=true; }) : null;
 
 /* =================== BOOT =================== */
 renderBell();

@@ -2,6 +2,26 @@
 
 A Netflix-style streaming frontend. Pure HTML + CSS + JavaScript, no backend, no build step.
 
+## Real movies and posters (TMDB)
+
+1. Open **`config.js`** in VS Code (or Notepad).
+2. Replace `PASTE_YOUR_TMDB_API_KEY_HERE` with your TMDB API key. Keep the quotes:
+   ```js
+   tmdbKey: 'a1b2c3d4e5f6...',
+   ```
+3. Save, then open the site (see "How to run") and refresh.
+
+You should see the message **"Real movies loaded"** after choosing a profile.
+If you see **"TMDB key not accepted"**, the key is wrong (check for extra spaces).
+If you see **"Couldn't reach TMDB"**, your network is blocking it: try another Wi-Fi or mobile hotspot, or set DNS to 1.1.1.1 / 8.8.8.8.
+In both cases the site still works with the built-in sample movies.
+
+What becomes real: titles, posters, banners, descriptions, cast, runtime, certificate (UA/A), star rating, episodes,
+"More Like This" (TMDB recommendations), Coming Soon dates, search across all of TMDB, and the Play button offers the
+official YouTube trailer.
+
+> Movie and TV data and images from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.
+
 ## How to run
 
 **Option 1 – just open it**
@@ -38,6 +58,11 @@ Then open http://localhost:5500 (or the URL `serve` prints).
 
 ## How the "AI" works (for your viva / report)
 
+With TMDB connected, each movie's TMDB genres are translated into CineSense moods and themes (table `GMAP` in the
+TMDB section, e.g. Comedy → Funny + Feel-Good, Horror → Scary + Dark). When the user types a mood, the app also asks TMDB
+`/discover` for matching genres and `/search/multi` for titles and actors, then ranks everything with the same scoring below.
+
+
 All in the `SEMANTIC / MOOD ENGINE` section of the script:
 
 1. **Interpretation (NLP layer)** – `interpret(text)` maps the user's words to concepts using a lexicon of synonyms: 12 moods, genres, themes (e.g. *strong female lead*, *noir*), languages and content type. It understands feelings ("stressed" → chill / feel-good) and negation ("not scary").
@@ -52,6 +77,7 @@ In the full system this layer is replaced by a backend that creates sentence emb
 ```
 cinesense/
 ├── index.html   ← whole app (HTML + CSS + JS), sections clearly commented
+├── config.js    ← your TMDB API key goes here
 └── README.md
 ```
 
@@ -61,7 +87,6 @@ Inside `index.html` the script is split into: DATA, STATE, ICONS, GENERATED ARTW
 
 - **Add or edit movies**: the `CATALOG` array. Each entry: title, year, type, language, genres, moods, themes, rating, duration, poster style, colours, description, cast.
 - **Poster style**: `motif` is one of `sun, orbit, city, waves, forest, portrait, grid, rain`; `pal` is two colours. Posters are drawn in code, so there are no image files and no copyright issues.
-- **Use real images later**: replace `art(m, kind)` with an image URL (e.g. `m.poster`).
 - **Brand colour**: `--red` in the `:root` CSS block.
 
-All titles, cast and artwork are fictional sample data.
+The built-in sample titles (used when no key is set) are fictional.
