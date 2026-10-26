@@ -1,0 +1,25 @@
+{
+  "id": "./",
+  "name": "CineSense – Semantic Movie Discovery",
+  "short_name": "CineSense",
+  "description": "Discover movies and series by mood, theme and meaning. Ask the Mood AI for feel-good, sad, scary or mind-bending picks.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#141414",
+  "theme_color": "#141414",
+  "lang": "en",
+  "categories": ["entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "screenshots/desktop-home.jpg", "sizes": "1600x1000", "type": "image/jpeg", "form_factor": "wide", "label": "Home page with hero banner and rows" },
+    { "src": "screenshots/mobile-home.jpg", "sizes": "780x1688", "type": "image/jpeg", "form_factor": "narrow", "label": "Home page on a phone" },
+    { "src": "screenshots/mobile-ai.jpg", "sizes": "780x1688", "type": "image/jpeg", "form_factor": "narrow", "label": "Mood AI assistant" }
+  ]
+}

@@ -22,6 +22,46 @@ official YouTube trailer.
 
 > Movie and TV data and images from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.
 
+## Install as an app (PWA)
+
+CineSense is a Progressive Web App. When it is opened from a real website address (https),
+Chrome offers to install it, and it then opens full-screen from the home screen like a normal app.
+
+Why it must be hosted: phones only allow installing from **https** addresses (or localhost on the same
+computer). Opening the file directly, or from your laptop's Wi-Fi address (http://192.168...), will
+show the site but not the Install option.
+
+### Deploy free on Firebase Hosting
+1. Create a project at https://console.firebase.google.com (Analytics can be off).
+2. In a terminal:
+   ```bash
+   npm install -g firebase-tools
+   firebase login
+   cd cinesense
+   firebase deploy --only hosting --project YOUR-PROJECT-ID
+   ```
+3. Open the address it prints (https://YOUR-PROJECT-ID.web.app) in Chrome on the phone.
+   Choose a profile, then tap **Install** on the banner (or Chrome menu > **Install app**).
+
+`firebase.json` is already included, so no `firebase init` is needed.
+
+### Updating after changes
+Edit `sw.js` and change `VERSION = 'cinesense-v1'` to `'cinesense-v2'` (and so on), then deploy again.
+Installed apps pick up the new version the next time they are opened with internet.
+
+### iPhone
+Open the site in Safari > Share > **Add to Home Screen**. (iPhones do not show an Install button.)
+
+### Getting a real .apk file
+1. Deploy first (above).
+2. Go to https://www.pwabuilder.com, enter your https address, choose **Package for stores > Android**.
+3. Download the zip; it contains an installable `.apk` (and an `.aab` for the Play Store).
+4. To remove the address bar inside the APK, put the `assetlinks.json` from that zip at
+   `cinesense/.well-known/assetlinks.json` and deploy again.
+
+Note: `config.js` (your TMDB key) is public once hosted. A TMDB key is read-only, so this is fine for a
+demo; a backend would hide it in a production version.
+
 ## How to run
 
 **Option 1 – just open it**
@@ -78,6 +118,11 @@ In the full system this layer is replaced by a backend that creates sentence emb
 cinesense/
 ├── index.html   ← whole app (HTML + CSS + JS), sections clearly commented
 ├── config.js    ← your TMDB API key goes here
+├── manifest.json  ← app name, icons, colours (makes it installable)
+├── sw.js          ← service worker: install support + offline mode
+├── icons/         ← app icons (192, 512, maskable, iPhone, favicon)
+├── screenshots/   ← shown in Chrome's install dialog
+├── firebase.json  ← ready-made Firebase Hosting settings
 └── README.md
 ```
 
